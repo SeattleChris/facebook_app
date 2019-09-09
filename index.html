@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Test App</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/style.css">
+
+  </head>
+  <body>
+      <script>
+          window.fbAsyncInit = function() {
+            FB.init({
+              appId            : '364334577853739',
+              autoLogAppEvents : true,
+              xfbml            : true,
+              version          : 'v4.0'
+            });
+            FB.login(function(response) {
+              if (response.authResponse) {
+               console.log('Welcome!  Fetching your information.... ');
+               FB.api('/me', function(response) {
+                 console.log('Good to see you, ' + response.name + '.');
+               });
+              } else {
+               console.log('User cancelled login or did not fully authorize.');
+              }
+          });
+          };
+      </script>
+      <script async defer src="https://connect.facebook.net/en_US/sdk.js"></script>
+      <header>
+        <h1>FB Test App</h1>
+      </header>
+      <main>
+        <p>Content</p>
+      </main>
+      <footer>&copy; Chris L Chapman</footer>
+      <script src="js/app.js"></script>
+  </body>
+</html>
