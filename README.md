@@ -11,7 +11,6 @@ We are currently deploying on google cloud (gcloud), with a flask server. Gcloud
 Deployed site:
 [https://fb-test-251219.appspot.com/](https://fb-test-251219.appspot.com/)
 
-
 ## Overview
 
 <!-- What is this project for? What does it do? -->
