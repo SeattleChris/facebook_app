@@ -19,6 +19,7 @@ def home():
 
 @app.route('/<string:page_name>/')
 def render_static(page_name):
+    """ Return the requested page """
     return render_template('%s.html' % page_name)
 
 
