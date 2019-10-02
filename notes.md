@@ -24,12 +24,17 @@ Use the Facebook Login product to request User access tokens from your app's use
 
 1. Influencer must have an influencer instagram account (or fix it following steps).
 2. Influencer must have a FaceBook Page (Business Page).
-3. On their FaceBook Page, click settings, then instagram, then attach instagram account
-4. While here: Make sure their instagram is an influencer account (switch to business profile)
+3. On their FaceBook Page, click settings, then instagram, then attach instagram account.
+4. While here: Make sure their instagram is an influencer account (switch to business profile).
+
+## Needed for Development Testing
+
+During development, we can only access content connected to people who have roles in the FaceBook app (with FaceBook Developer account), and test accounts. See [Test User API](https://developers.facebook.com/docs/graph-api/reference/v4.0/test-user)
+
+- Test Users
+- Test Pages (owned by Test users)
 
 ## Needed for FaceBook App approval
 
 1. Update Privacy Policy: [Privacy Policy](https://fb-test-251219.appspot.com/privacy)
-
-  Analytics, Marketing: valid Privacy Policy URL, see [Basic Settings](https://developers.facebook.com/apps/364334577853739/settings/basic/)
-2.
+2. [App Review](https://developers.facebook.com/docs/apps/review)
