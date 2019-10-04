@@ -18,7 +18,7 @@
 
 
 class User:
-    __tablename__ = "users"
+    # __tablename__ = "users"
 
     def __init__(self, id, name, profile_url, access_token):
         self.id = id

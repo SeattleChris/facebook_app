@@ -1,22 +1,21 @@
 from facebook import get_user_from_cookie, GraphAPI
-from flask import Flask, g, render_template, redirect, request, session, url_for
+from flask import Flask, g, render_template, redirect, abort, request, session, url_for
 # from flask.ext.sqlalchemy import SQLAlchemy
 # import requests
 from dotenv import load_dotenv
 import os
 # from app import app, db
-from .models import User
-
-
+# from .models import User
 # For google cloud: first it looks for 'entrypoint' in app.yaml, then for 'app' here
 load_dotenv()
 app = Flask(__name__)
 # app.config.from_object("config")
 # db = SQLAlchemy(app)
+# TODO: Refactor following to an object to hold all the FaceBook settings?
 fb_app_name = os.getenv('FACEBOOK_APP_NAME', '')
 fb_app_id = os.getenv('FACEBOOK_APP_ID', '')
 fb_app_secret = os.getenv('FACEBOOK_APP_SECRET', '')
-fb_api_ver = os.getenv('FACEBOOK_API_VERSION', '3.1')
+fb_api_ver = os.getenv('FACEBOOK_API_VERSION')
 # graph = GraphAPI(access_token=fb_app_secret, version=fb_api_ver)
 perms = [
     'email',
@@ -36,6 +35,16 @@ perms = [
         ]
 
 
+class User:
+    # __tablename__ = "users"
+
+    def __init__(self, id, name, profile_url, access_token):
+        self.id = id
+        self.name = name
+        self.profile_url = profile_url
+        self.access_token = access_token
+
+
 @app.route('/hello')
 def hello():
     """Return a friendly HTTP greeting."""
@@ -44,14 +53,16 @@ def hello():
 
 @app.route("/")
 def index():
+    scope = ','.join(str(x) for x in perms)
     # If a user was set in the get_current_user function before the request,
     # the user is logged in.
     if g.user:
         return render_template(
-            "index.html", app_id=fb_app_id, app_name=fb_app_name, user=g.user
-        )
+            "index.html", app_id=fb_app_id, app_name=fb_app_name, api_ver=fb_api_ver,
+            scope=scope, user=g.user)
     # Otherwise, a user is not logged in.
-    return render_template("login.html", app_id=fb_app_id, name=fb_app_name)
+    return render_template("login.html", app_id=fb_app_id, app_name=fb_app_name, api_ver=fb_api_ver,
+                           scope=scope)
 
 
 @app.route("/logout")
@@ -123,6 +134,7 @@ def get_current_user():
     # Commit changes to the database and set the user as a global g.user
     # db.session.commit()
     g.user = session.get("user", None)
+    print('Current User: ', g.user)
 
 
 # @app.route('/', methods=['GET', 'POST'])
@@ -177,6 +189,8 @@ def get_current_user():
 @app.route('/<string:page_name>/')
 def render_static(page_name):
     """ Return the requested page """
+    if page_name == 'favicon.ico':
+        return abort(404)
     return render_template('%s.html' % page_name)
 
 
