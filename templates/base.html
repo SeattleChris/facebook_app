@@ -28,6 +28,7 @@
     console.log('========= Status =============', response);                   // The current login status of the person.
     if (response.status === 'connected') {   // Logged into your webpage and Facebook.
       testAPI();
+      // confirmAuth(response.authResponse);
     } else {                                 // Not logged into your webpage or we are unable to tell.
       document.getElementById('status').innerHTML = 'Please log ' +
       'into this webpage.';
@@ -64,9 +65,14 @@
       'Thanks for logging in, ' + response.name + '!';
     });
   }
+  function confirmAuth(authResponse) {
+    let token = authResponse.accessToken;
+    let user_id = authResponse.userID;
+    document.getElementById('token').setAttribute('value', authResponse.accessToken);
+    document.getElementById('user_id').setAttribute('value', authResponse.userID);
+    document.getElementById('post-form').style.visibility = 'visible';
+  }
 </script>
-<fb:login-button data-size='xlarge' scope="{{ scope }} " onlogin="checkLoginState();">Sign in
-</fb:login-button>
 
 <div id="status">
 </div>

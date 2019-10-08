@@ -11,6 +11,17 @@ Use the Facebook Login product to request User access tokens from your app's use
                 }
               }
             });
+  Response:
+            {
+                status: 'connected',
+                authResponse: {
+                    accessToken: '{access-token}',
+                    expiresIn:'{unix-timestamp}',
+                    reauthorize_required_in:'{seconds-until-token-expires}',
+                    signedRequest:'{signed-parameter}',
+                    userID:'{user-id}'
+                }
+            }
 
 ## Adding Influencers to our App
 
@@ -36,9 +47,17 @@ Example 1:
 
 See also "Manual Build a Login"
 
-### Manual Build A Login
+### Manual Build A Login - Adding a New User
 
-Your app must initiate a redirect to an endpoint which will display the login dialog:
+Your app must initiate a redirect to an endpoint which will display the login dialog.
+
+1. [x] We have our app-token, which is never passed by front-end. Our app-id can be passed front-end.
+2. [x] New User can login w/ FB passed along with our app-id. They grant permissions we request.
+3. [x] Capture the returning user auth-token.
+4. [ ] Capture facebook user_id to validate against in backend.
+5. [ ] Backend takes user token, and verifies w/ our app token.
+6. [ ] Take the response and verify is_valid is true, and user_id matches as expected.
+7. [ ] Add user to our DB, populating with info from FB account.
 
 Request from us:
 ```
@@ -102,7 +121,6 @@ Expected response:
 }
 ```
 We use the `app_id` and `user_id` to verify the access token is valid for this user.
-
 
 ## Influencer connecting Instagram to a FaceBook Page
 
