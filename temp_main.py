@@ -1,29 +1,21 @@
 from facebook import get_user_from_cookie, GraphAPI
 from flask import Flask, g, render_template, redirect, abort, request, session, url_for
 # from flask.ext.sqlalchemy import SQLAlchemy
-from flask_sqlalchemy import SQLAlchemy
-
-from datetime import datetime
 import requests
 from dotenv import load_dotenv
 import os
-# from app import app, db
-# from .models import User
 # For google cloud: first it looks for 'entrypoint' in app.yaml, then for 'app' here
 load_dotenv()
 app = Flask(__name__)
-app.config.from_object("config")
-db = SQLAlchemy(app)
+# app.config.from_object("config")
+# db = SQLAlchemy(app)
 # TODO: Refactor following to an object to hold all the FaceBook settings?
 fb_app_name = os.getenv('FACEBOOK_APP_NAME', '')
 fb_app_id = os.getenv('FACEBOOK_APP_ID', '')
 fb_app_secret = os.getenv('FACEBOOK_APP_SECRET', '')
 fb_api_ver = os.getenv('FACEBOOK_API_VERSION')
+fb_user_token = os.getenv('FB_USER_TOKEN')
 # graph = GraphAPI(access_token=fb_app_secret, version=fb_api_ver)
-db_user = os.getenv("DB_USER")
-db_pass = os.getenv("DB_PASS")
-db_name = os.getenv("DB_NAME")
-cloud_sql_connection_name = os.getenv("CLOUD_SQL_CONNECTION_NAME")
 perms = [
     'email',
     'user_link',
@@ -42,45 +34,15 @@ perms = [
         ]
 
 
-db = SQLAlchemy.create_engine(
-    # Equivalent URL:
-    # mysql+pymysql://<db_user>:<db_pass>@/<db_name>?unix_socket=/cloudsql/<cloud_sql_instance_name>
-    SQLAlchemy.engine.url.URL(
-        drivername='mysql+pymysql',
-        username=db_user,
-        password=db_pass,
-        database=db_name,
-        query={
-            'unix_socket': '/cloudsql/{}'.format(cloud_sql_connection_name)
-        }
-    ),
-    # ... Specify additional properties here.
-)
+class User:
+    # __tablename__ = "users"
 
-# class User:
-#     # __tablename__ = "users"
+    def __init__(self, id, name, profile_url, access_token):
+        self.id = id
+        self.name = name
+        self.profile_url = profile_url
+        self.access_token = access_token
 
-#     def __init__(self, id, name, profile_url, access_token):
-#         self.id = id
-#         self.name = name
-#         self.profile_url = profile_url
-#         self.access_token = access_token
-
-
-class User(db.Model):
-    __tablename__ = "users"
-
-    id = db.Column(db.String, nullable=False, primary_key=True)
-    created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated = db.Column(
-        db.DateTime,
-        default=datetime.utcnow,
-        nullable=False,
-        onupdate=datetime.utcnow,
-    )
-    name = db.Column(db.String, nullable=False)
-    profile_url = db.Column(db.String, nullable=False)
-    access_token = db.Column(db.String, nullable=False)
 
 @app.route('/hello')
 def hello():
@@ -93,10 +55,10 @@ def index():
     scope = ','.join(str(x) for x in perms)
     # If a user was set in the get_current_user function before the request,
     # the user is logged in.
-    # if g.user:
-    #     return render_template(
-    #         "index.html", app_id=fb_app_id, app_name=fb_app_name, api_ver=fb_api_ver,
-    #         scope=scope, user=g.user)
+    if g.user:
+        return render_template(
+            "index.html", app_id=fb_app_id, app_name=fb_app_name, api_ver=fb_api_ver,
+            scope=scope, user=g.user)
     # Otherwise, a user is not logged in.
     return render_template("login.html", app_id=fb_app_id, app_name=fb_app_name, api_ver=fb_api_ver,
                            scope=scope)
@@ -128,10 +90,54 @@ def test():
 
     fb_login_url = graph.get_auth_url(fb_app_id, confirm_url, perms)
     response = requests.get(fb_login_url)
-    print("=======================================")
-    print(response.text)
+    print("============= test route ==========================")
     # return render_template("results.html")
     return response.text
+
+
+@app.route("/verify", methods=['POST'])
+def verify():
+    """After the user logs in with the pop-up of the FaceBook site, we want to
+    make sure they are the correct user and verify their token.
+    """
+    # TODO: Add method for PUT to update token and/or permissions.
+    # request.json is not MultiDict. request.form can be addressed by key.
+    code = request.form['token']
+    user_id = request.form['user_id']
+    expected = {}
+    expected['app_id'] = fb_app_id
+    expected['is_valid'] = True
+    expected['user_id'] = request.form['user_id']
+    expected['scopes'] = vars
+    return_page = ''  # TODO: Correct return page?
+    url = f"https://graph.facebook.com/{fb_api_ver}/oauth/access_token?"
+    url += f"client_id={fb_app_id}&redirect_uri={return_page}&client_secret={fb_app_secret}&code={code}"  # &redirect_uri={return_page}
+    response = requests.get(url).json()
+    print("===================== code to token? =============================================")
+    if response.get('error'):
+        return render_template('error.html', error=response.get('error'))
+    token = response.get('access_token')
+    print(token)
+    check_url = 'https://graph.facebook.com/debug_token?'
+    check_url += f"input_token={token}&access_token={fb_app_secret}"
+    response = requests.get(check_url).json()
+    print("===================== json_response ============================")
+    if response.get('error'):
+        return render_template('error.html', error=response.get('error'))
+    for key in response.keys():
+        print(key)
+    data = response.get('data')
+    print("================check_url data=============================")
+    good = True
+    for key in expected.keys():
+        if expected[key] != data[key]:
+            good = False
+            print(f"Expected {key}: {expected[key]} but got {data[key]}")
+        else:
+            print(f"{key} is {data[key]}")
+    print("=================== We are good: {good} ==================")
+    # TODO: Check if they approved everything if scope matches perms. Manage issues.
+    return render_template('results.html')
 
 
 @app.before_request
@@ -176,7 +182,7 @@ def get_current_user():
                 profile_url=profile["link"],
                 access_token=result["access_token"],
             )
-            db.session.add(user)
+            # db.session.add(user)
         elif user.access_token != result["access_token"]:
             # If an existing user, update the access token
             user.access_token = result["access_token"]
@@ -190,9 +196,16 @@ def get_current_user():
         )
 
     # Commit changes to the database and set the user as a global g.user
-    db.session.commit()
+    # db.session.commit()
     g.user = session.get("user", None)
     print('Current User: ', g.user)
+
+
+# @app.route('/confirm')
+# def confirm():
+#     """ Where user is sent after confirming app permissions """
+#     print('====== Confirm ========')
+#     return render_template('confirm.html')
 
 
 @app.route('/<string:page_name>/')

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Python Facebook SDK</h3>
+<fb:login-button data-size='xlarge' scope="{{ scope }} " onlogin="checkLoginState();">Sign in
+</fb:login-button>
+
+<form action="/verify" method="POST" style="visibility: hidden;" id="post-form">
+    <input type="hidden" id="token" name="token" value="">
+    <input type="hidden" id="user_id" name="user_id" value="">
+    <input type="submit" value="Do It!">
+</form>
+
+<div class="center">
+    <h4>Flask example</h4>
+    <div class="fb-login-button" data-size='xlarge' data-scope="{{ scope }}" onlogin="checkLoginState();">
+        Sign in
+    </div>
+</div>
+{% endblock %}

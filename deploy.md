@@ -12,6 +12,7 @@ Run the app: `python main.py`
 
 Deploying to App Engine:
 If not already done, we need to create an gcloud app: `gcloud app create`
-Deploy the app: `gcloud app deploy app.yaml --project fb-test-251219` replacing project name as appropriate.
+Deploy the app: `gcloud app deploy app.yaml --project fb-test-251219`
+replacing project name as appropriate.
 
 -- End of Document --

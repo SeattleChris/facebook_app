@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:fb="https://ogp.me/ns/fb#" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Example Facebook app using Flask and Python Facebook SDK">
+    <meta name="author" content="github.com/mylsb">
+    <meta property="fb:app_id" content="{{ app_id }}" />
+    <title>{{ app_name }}</title>
+    <link rel="stylesheet" href="static/normalize.css">
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <!--[if IE]>
+      <script type="text/javascript">
+        var tags = ['header', 'section'];
+        while(tags.length)
+          document.createElement(tags.pop());
+      </script>
+    <![endif]-->
+</head>
+<body>
+  <h1> {{ app_name }} </h1>
+  {% if user %}
+  <p>Hello {{ user }}! </p>
+  {% endif %}
+  <script>
+    function statusChangeCallback(response) {  // Called with the results from FB.getLoginStatus().
+    console.log('statusChangeCallback');
+    console.log('========= Status =============', response);                   // The current login status of the person.
+    if (response.status === 'connected') {   // Logged into your webpage and Facebook.
+      testAPI();
+      // confirmAuth(response.authResponse);
+    } else {                                 // Not logged into your webpage or we are unable to tell.
+      document.getElementById('status').innerHTML = 'Please log ' +
+      'into this webpage.';
+    }
+  }
+  function checkLoginState() {               // Called when a person is finished with the Login Button.
+    FB.getLoginStatus(function(response) {   // See the onlogin handler
+      statusChangeCallback(response);
+    });
+  }
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '{{ app_id }}',
+      cookie     : true,                     // Enable cookies to allow the server to access the session.
+      xfbml      : true,                     // Parse social plugins on this webpage.
+      version    : '{{ api_ver }}'           // Use this Graph API version for this call.
+    });
+    FB.getLoginStatus(function(response) {   // Called after the JS SDK has been initialized.
+      statusChangeCallback(response);        // Returns the login status.
+    });
+  };
+  (function(d, s, id) {                      // Load the SDK asynchronously
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "https://connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+  function testAPI() {                      // Testing Graph API after login.  See statusChangeCallback() for when this call is made.
+    console.log('Welcome!  Fetching your information.... ');
+    FB.api('/me', function(response) {
+      console.log('Successful login for: ' + response.name);
+      document.getElementById('status').innerHTML =
+      'Thanks for logging in, ' + response.name + '!';
+    });
+  }
+  function confirmAuth(authResponse) {
+    let token = authResponse.accessToken;
+    let user_id = authResponse.userID;
+    document.getElementById('token').setAttribute('value', authResponse.accessToken);
+    document.getElementById('user_id').setAttribute('value', authResponse.userID);
+    document.getElementById('post-form').style.visibility = 'visible';
+  }
+</script>
+
+<div id="status">
+</div>
+
+<div class="container">
+    {% block content %} {% endblock %}
+</div>
+
+</body>
+</html>
